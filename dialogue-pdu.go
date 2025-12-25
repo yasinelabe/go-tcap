@@ -174,7 +174,7 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
-func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
+func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARQ),
 		ProtocolVersion: &IE{
@@ -183,19 +183,15 @@ func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *Dialogue
 		},
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 	}
-	if len(userinfo) > 0 {
-		d.UserInformation = &IE{
-			Tag:   NewContextSpecificConstructorTag(30),
-			Value: userinfo[0].Value,
-		}
-		d.UserInformation.SetLength()
+	if userinfo != nil {
+		d.UserInformation = userinfo
 	}
 	d.SetLength()
 	return d
 }
 
 // NewAARE returns a new AARE(Dialogue Response).
-func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo ...*IE) *DialoguePDU {
+func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo *IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARE),
 		ProtocolVersion: &IE{
@@ -206,12 +202,8 @@ func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reaso
 		Result:                 NewResult(result),
 		ResultSourceDiagnostic: NewResultSourceDiagnostic(diagsrc, reason),
 	}
-	if len(userinfo) > 0 {
-		d.UserInformation = &IE{
-			Tag:   NewContextSpecificConstructorTag(30),
-			Value: userinfo[0].Value,
-		}
-		d.UserInformation.SetLength()
+	if userinfo != nil {
+		d.UserInformation = userinfo
 	}
 	d.SetLength()
 	return d
