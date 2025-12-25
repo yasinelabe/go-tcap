@@ -73,37 +73,58 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cdPA, err := utils.StrToSwappedBytes("1234567890123456", "0")
-	if err != nil {
-		log.Fatal(err)
-	}
-	cgPA, err := utils.StrToSwappedBytes("9876543210", "0")
-	if err != nil {
-		log.Fatal(err)
-	}
+	cdPA, cgPA := createAddresses("1234567890") // subscriber MSISDN
 
-	// create UDT message with CdPA, CgPA and payload
-	udt, err := sccp.NewUDT(
+	udt := sccp.NewUDT(
 		1,    // Protocol Class
-		true, // Message handling
-		params.NewPartyAddress( // CalledPartyAddress: 1234567890123456
-			0x12, 0, 6, 0x00, // Indicator, SPC, SSN, TT
-			0x01, 0x01, 0x04, // NP, ES, NAI
-			cdPA, // GlobalTitleInformation
-		),
-		params.NewPartyAddress( // CallingPartyAddress: 9876543210
-			0x12, 0, 7, 0x01, // Indicator, SPC, SSN, TT
-			0x01, 0x02, 0x04, // NP, ES, NAI
-			cgPA, // GlobalTitleInformation
-		),
+		true, // Return on error
+		cdPA,
+		cgPA,
 		tcapBytes,
-	).MarshalBinary()
+	)
+
+	udtBytes, err := udt.MarshalBinary()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// send once
-	if _, err := m3conn.Write(udt); err != nil {
+	if _, err := m3conn.Write(udtBytes); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// createAddresses creates SCCP addresses
+func createAddresses(msisdn string) (cdPA, cgPA *params.PartyAddress) {
+	// Called Party: Subscriber's MSISDN
+	cdPA = params.NewCalledPartyAddress(
+		params.NewAddressIndicator(false, true, false, params.GTITTNPESNAI),
+		0, // SPC
+		6, // SSN: HLR
+		params.NewGlobalTitle(
+			params.GTITTNPESNAI,
+			params.TranslationType(0),
+			params.NPISDNTelephony,
+			params.ESUnknown,
+			params.NAIInternationalNumber,
+			utils.MustBCDEncode(msisdn),
+		),
+	)
+
+	// Calling Party: USSD Gateway/Application
+	cgPA = params.NewCallingPartyAddress(
+		params.NewAddressIndicator(false, true, false, params.GTITTNPESNAI),
+		0, // SPC
+		7, // SSN: VLR or USSD Gateway
+		params.NewGlobalTitle(
+			params.GTITTNPESNAI,
+			params.TranslationType(1),
+			params.NPISDNTelephony,
+			params.ESUnknown,
+			params.NAIInternationalNumber,
+			utils.MustBCDEncode("9876543210"), // USSD Gateway number
+		),
+	)
+
+	return cdPA, cgPA
 }

@@ -67,7 +67,7 @@ func NewEndReturnResult(dtid uint32, invID, opCode int, isLast bool, payload []b
 // NewEndReturnResultWithDialogue creates a new TCAP of type Transaction=End, Component=ReturnResult with Dialogue Portion.
 func NewEndReturnResultWithDialogue(dtid uint32, dlgType, ctx, ctxver uint8, invID, opCode int, isLast bool, payload []byte) *TCAP {
 	t := NewEndReturnResult(dtid, invID, opCode, isLast, payload)
-	t.Dialogue = NewDialogue(dlgType, 1, NewAARE(1, ctx, ctxver, Accepted, DialogueServiceUser, Null), []byte{})
+	t.Dialogue = NewDialogue(dlgType, 1, NewAARE(1, ctx, ctxver, Accepted, DialogueServiceUser, Null,nil), []byte{})
 	t.SetLength()
 
 	return t

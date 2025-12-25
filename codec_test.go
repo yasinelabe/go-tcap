@@ -333,7 +333,7 @@ var testcases = []struct {
 				// Version, Context, ContextVersion
 				1, tcap.AnyTimeInfoEnquiryContext, 3,
 				// Result, ResultSourceDiag, Reason
-				0, 1, 0,
+				0, 1, 0,nil,
 			),
 			[]byte{0xde, 0xad, 0xbe, 0xef},
 		),
