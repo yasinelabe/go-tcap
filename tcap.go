@@ -36,7 +36,7 @@ func NewBeginInvoke(otid uint32, invID, opCode int, payload []byte) *TCAP {
 // NewBeginInvokeWithDialogue creates a new TCAP of type Transaction=Begin, Component=Invoke with Dialogue Portion.
 func NewBeginInvokeWithDialogue(otid uint32, dlgType, ctx, ctxver uint8, invID, opCode int, payload []byte) *TCAP {
 	t := NewBeginInvoke(otid, invID, opCode, payload)
-	t.Dialogue = NewDialogue(dlgType, 1, NewAARQ(1, ctx, ctxver), []byte{})
+	t.Dialogue = NewDialogue(dlgType, 1, NewAARQ(1, ctx, ctxver,nil), []byte{})
 	t.SetLength()
 
 	return t

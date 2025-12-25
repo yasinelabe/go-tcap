@@ -174,7 +174,7 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
-func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
+func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARQ),
 		ProtocolVersion: &IE{
@@ -183,13 +183,10 @@ func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *Dialogue
 		},
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 	}
-	if len(userinfo) > 0 {
-		d.UserInformation = &IE{
-			Tag:   NewContextSpecificConstructorTag(30),
-			Value: userinfo[0].Value,
+		// ✔ ONLY include user-information if provided
+		if userinfo != nil {
+			d.UserInformation = userinfo
 		}
-		d.UserInformation.SetLength()
-	}
 	d.SetLength()
 	return d
 }

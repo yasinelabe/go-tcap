@@ -268,7 +268,7 @@ var testcases = []struct {
 			1, 1, // OID, Version
 			tcap.NewAARQ(
 				// Version, Context, ContextVersion
-				1, tcap.AnyTimeInfoEnquiryContext, 3,
+				1, tcap.AnyTimeInfoEnquiryContext, 3,nil,
 			),
 			[]byte{0xde, 0xad, 0xbe, 0xef},
 		),
