@@ -174,7 +174,7 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
-func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
+func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARQ),
 		ProtocolVersion: &IE{
@@ -183,117 +183,39 @@ func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU
 		},
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 	}
-		// ✔ ONLY include user-information if provided
-		if userinfo != nil {
-			d.UserInformation = userinfo
+	if len(userinfo) > 0 {
+		d.UserInformation = &IE{
+			Tag:   NewContextSpecificConstructorTag(30),
+			Value: userinfo[0].Value,
 		}
+		d.UserInformation.SetLength()
+	}
 	d.SetLength()
 	return d
 }
 
-// NewAARE returns a new AARE (Dialogue Response)
-// userinfo is OPTIONAL and may be nil
-func NewAARE(
-	protover int,
-	context, contextver, result uint8,
-	diagsrc int,
-	reason uint8,
-	userinfo *IE, // <-- nullable
-) *DialoguePDU {
-
+// NewAARE returns a new AARE(Dialogue Response).
+func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo ...*IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARE),
-
 		ProtocolVersion: &IE{
 			Tag:   NewContextSpecificPrimitiveTag(0),
-			Value: []byte{0x07, byte(protover << 7)},
+			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
 		},
-
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 		Result:                 NewResult(result),
 		ResultSourceDiagnostic: NewResultSourceDiagnostic(diagsrc, reason),
 	}
-
-	// ✔ ONLY include user-information if provided
-	if userinfo != nil {
-		d.UserInformation = userinfo
+	if len(userinfo) > 0 {
+		d.UserInformation = &IE{
+			Tag:   NewContextSpecificConstructorTag(30),
+			Value: userinfo[0].Value,
+		}
+		d.UserInformation.SetLength()
 	}
-
 	d.SetLength()
 	return d
 }
-
-func oidMapDialogueAS() []byte {
-	// 0.4.0.0.1.1.1.1
-	oid := []byte{
-		0x04*40 + 0x00, // 0.4
-		0x00,
-		0x00,
-		0x01,
-		0x01,
-		0x01,
-		0x01,
-	}
-	return tlv(0x06, oid) // OBJECT IDENTIFIER
-}
-
-func buildMAPOpenIMSI(msisdn, imsi []byte) []byte {
-
-	// destinationReference (IMSI) — [0]
-	dest := tlv(0x80, imsi)
-
-	// originationReference (MSISDN) — [1]
-	orig := tlv(0x81, msisdn)
-
-	mapOpen := append(dest, orig...)
-
-	// APPLICATION 0 (map-open)
-	return tlv(0x60, mapOpen)
-}
-
-
-func wrapUserInfoItem(mapOpen []byte) []byte {
-
-	// direct-reference
-	dr := oidMapDialogueAS()
-
-	// encoding [0] single-ASN1-type
-	encoding := tlv(0xA0, mapOpen)
-
-	external := append(dr, encoding...)
-
-	// EXTERNAL (UNIVERSAL 8)
-	return tlv(0x28, external)
-}
-
-func BuildUserInformationMAP(msisdn, imsi []byte) *IE {
-
-	mapOpen := buildMAPOpenIMSI(msisdn, imsi)
-
-	external := wrapUserInfoItem(mapOpen)
-
-	ui := &IE{
-		Tag:   NewContextSpecificConstructorTag(30), // user-information
-		Value: external,
-	}
-	ui.SetLength()
-	return ui
-}
-
-
-func tlv(tag byte, value []byte) []byte {
-	out := []byte{tag}
-
-	if len(value) < 128 {
-		out = append(out, byte(len(value)))
-	} else {
-		out = append(out, 0x81, byte(len(value)))
-	}
-
-	out = append(out, value...)
-	return out
-}
-
 
 // NewABRT returns a new ABRT(Dialogue Abort).
 func NewABRT(abortsrc uint8, userinfo ...*IE) *DialoguePDU {
