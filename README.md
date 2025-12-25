@@ -2,10 +2,10 @@
 
 Simple TCAP implementation in the Go Programming Language.
 
-![CI status](https://github.com/wmnsk/go-tcap/actions/workflows/go.yml/badge.svg)
-[![golangci-lint](https://github.com/wmnsk/go-tcap/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/wmnsk/go-tcap/actions/workflows/golangci-lint.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/wmnsk/go-tcap.svg)](https://pkg.go.dev/github.com/wmnsk/go-tcap)
-[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/wmnsk/go-tcap/blob/master/LICENSE)
+![CI status](https://github.com/yasinelabe/go-tcap/actions/workflows/go.yml/badge.svg)
+[![golangci-lint](https://github.com/yasinelabe/go-tcap/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/yasinelabe/go-tcap/actions/workflows/golangci-lint.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/yasinelabe/go-tcap.svg)](https://pkg.go.dev/github.com/yasinelabe/go-tcap)
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/yasinelabe/go-tcap/blob/master/LICENSE)
 
 Package tcap provides simple and painless handling of TCAP (Transaction Capabilities Application Part) in SS7/SIGTRAN protocol stack, intended for Go developers to use.
 
@@ -140,4 +140,4 @@ Yoshiyuki Kurauchi ([Website](https://wmnsk.com/))
 
 ## LICENSE
 
-[MIT](https://github.com/wmnsk/go-tcap/blob/master/LICENSE)
+[MIT](https://github.com/yasinelabe/go-tcap/blob/master/LICENSE)

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/pascaldekloe/goe/verify"
-	"github.com/wmnsk/go-tcap"
+	"github.com/yasinelabe/go-tcap"
 )
 
 type serializable interface {

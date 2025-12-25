@@ -1,4 +1,4 @@
-module github.com/wmnsk/go-tcap
+module github.com/yasinelabe/go-tcap
 
 go 1.21
 
