@@ -118,7 +118,7 @@ func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
 	}
 
 	if param != nil {
-		if err := c.setParameterFromBytes(param); err != nil {
+		if err := c.setParameterFromBytestest(param); err != nil {
 			logf("failed to build Parameter: %v", err)
 		}
 	}
@@ -490,6 +490,22 @@ func (c *Component) setParameterFromBytes(b []byte) error {
 	}
 	return nil
 }
+
+func (c *Component) setParameterFromBytestest(b []byte) error {
+	if b == nil {
+		return io.ErrUnexpectedEOF
+	}
+
+	// TCAP Invoke.parameter MUST be OCTET STRING (opaque MAP payload)
+	c.Parameter = &IE{
+		Tag:    NewUniversalPrimitiveTag(0x04), // OCTET STRING
+		Length: uint8(len(b)),
+		Value:  b,
+	}
+
+	return nil
+}
+
 
 // SetValsFrom sets the values from IE parsed by ParseBER.
 func (c *Components) SetValsFrom(berParsed *IE) error {
