@@ -174,24 +174,41 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
+// func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
+// 	d := &DialoguePDU{
+// 		Type: NewApplicationWideConstructorTag(AARQ),
+// 		ProtocolVersion: &IE{
+// 			Tag:   NewContextSpecificPrimitiveTag(0),
+// 			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
+// 		},
+// 		ApplicationContextName: NewApplicationContextName(context, contextver),
+// 	}
+// 	if len(userinfo) > 0 {
+// 		d.UserInformation = &IE{
+// 			Tag:   NewContextSpecificConstructorTag(30),
+// 			Value: userinfo[0].Value,
+// 		}
+// 		d.UserInformation.SetLength()
+// 	}
+// 	d.SetLength()
+// 	return d
+// }
+
 func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
-	d := &DialoguePDU{
-		Type: NewApplicationWideConstructorTag(AARQ),
-		ProtocolVersion: &IE{
-			Tag:   NewContextSpecificPrimitiveTag(0),
-			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
-		},
-		ApplicationContextName: NewApplicationContextName(context, contextver),
-	}
-	if len(userinfo) > 0 {
-		d.UserInformation = &IE{
-			Tag:   NewContextSpecificConstructorTag(30),
-			Value: userinfo[0].Value,
-		}
-		d.UserInformation.SetLength()
-	}
-	d.SetLength()
-	return d
+    d := &DialoguePDU{
+        Type: NewApplicationWideConstructorTag(AARQ),
+        // ProtocolVersion: nil, // Completely remove this
+        ApplicationContextName: NewApplicationContextName(context, contextver),
+    }
+    if len(userinfo) > 0 {
+        d.UserInformation = &IE{
+            Tag:   NewContextSpecificConstructorTag(30),
+            Value: userinfo[0].Value,
+        }
+        d.UserInformation.SetLength()
+    }
+    d.SetLength()
+    return d
 }
 
 // NewAARE returns a new AARE(Dialogue Response).
