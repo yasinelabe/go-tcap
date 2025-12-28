@@ -193,8 +193,8 @@ func NewAbortSource(src uint8) *IE {
 // 	d.SetLength()
 // 	return d
 // }
-
 func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
+	// removed protocol version
     d := &DialoguePDU{
         Type: NewApplicationWideConstructorTag(AARQ),
         ApplicationContextName: NewApplicationContextName(context, contextver),
@@ -313,12 +313,13 @@ func (d *DialoguePDU) MarshalTo(b []byte) error {
 
 func (d *DialoguePDU) marshalAARQTo(b []byte) error {
 	var offset = 2
-	if field := d.ProtocolVersion; field != nil {
-		if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
-			return err
-		}
-		offset += field.MarshalLen()
-	}
+	// removed protocl version
+	// if field := d.ProtocolVersion; field != nil {
+	// 	if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
+	// 		return err
+	// 	}
+	// 	offset += field.MarshalLen()
+	// }
 
 	if field := d.ApplicationContextName; field != nil {
 		if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
