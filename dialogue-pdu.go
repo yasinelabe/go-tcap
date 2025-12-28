@@ -174,37 +174,28 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
-// func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
-// 	d := &DialoguePDU{
-// 		Type: NewApplicationWideConstructorTag(AARQ),
-// 		ProtocolVersion: &IE{
-// 			Tag:   NewContextSpecificPrimitiveTag(0),
-// 			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
-// 		},
-// 		ApplicationContextName: NewApplicationContextName(context, contextver),
-// 	}
-// 	if userinfo != nil {
-// 		d.UserInformation = userinfo
-// 	}
-// 	d.SetLength()
-// 	return d
-// }
-
-// NewAARQ returns a new AARQ(Dialogue Request).
-func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
+func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARQ),
+		ProtocolVersion: &IE{
+			Tag:   NewContextSpecificPrimitiveTag(0),
+			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
+		},
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 	}
-	if userinfo != nil {
-		d.UserInformation = userinfo
+	if len(userinfo) > 0 {
+		d.UserInformation = &IE{
+			Tag:   NewContextSpecificConstructorTag(30),
+			Value: userinfo[0].Value,
+		}
+		d.UserInformation.SetLength()
 	}
 	d.SetLength()
 	return d
 }
 
 // NewAARE returns a new AARE(Dialogue Response).
-func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo *IE) *DialoguePDU {
+func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo ...*IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARE),
 		ProtocolVersion: &IE{
@@ -215,8 +206,12 @@ func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reaso
 		Result:                 NewResult(result),
 		ResultSourceDiagnostic: NewResultSourceDiagnostic(diagsrc, reason),
 	}
-	if userinfo != nil {
-		d.UserInformation = userinfo
+	if len(userinfo) > 0 {
+		d.UserInformation = &IE{
+			Tag:   NewContextSpecificConstructorTag(30),
+			Value: userinfo[0].Value,
+		}
+		d.UserInformation.SetLength()
 	}
 	d.SetLength()
 	return d
