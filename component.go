@@ -498,7 +498,7 @@ func (c *Component) setParameterFromBytestest(b []byte) error {
 
 	// TCAP Invoke.parameter MUST be OCTET STRING (opaque MAP payload)
 	c.Parameter = &IE{
-		Tag:    NewUniversalPrimitiveTag(0x04), // OCTET STRING
+		Tag:    NewContextSpecificPrimitiveTag(2), // OCTET STRING
 		Length: uint8(len(b)),
 		Value:  b,
 	}
