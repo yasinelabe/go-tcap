@@ -174,13 +174,26 @@ func NewAbortSource(src uint8) *IE {
 }
 
 // NewAARQ returns a new AARQ(Dialogue Request).
+// func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
+// 	d := &DialoguePDU{
+// 		Type: NewApplicationWideConstructorTag(AARQ),
+// 		ProtocolVersion: &IE{
+// 			Tag:   NewContextSpecificPrimitiveTag(0),
+// 			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
+// 		},
+// 		ApplicationContextName: NewApplicationContextName(context, contextver),
+// 	}
+// 	if userinfo != nil {
+// 		d.UserInformation = userinfo
+// 	}
+// 	d.SetLength()
+// 	return d
+// }
+
+// NewAARQ returns a new AARQ(Dialogue Request).
 func NewAARQ(protover int, context, contextver uint8, userinfo *IE) *DialoguePDU {
 	d := &DialoguePDU{
 		Type: NewApplicationWideConstructorTag(AARQ),
-		ProtocolVersion: &IE{
-			Tag:   NewContextSpecificPrimitiveTag(0),
-			Value: []byte{0x07, uint8(protover << 7)}, // I don't actually know what the 0x07(padding) means...
-		},
 		ApplicationContextName: NewApplicationContextName(context, contextver),
 	}
 	if userinfo != nil {
