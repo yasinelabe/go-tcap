@@ -200,6 +200,7 @@ func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *Dialogue
         // ProtocolVersion: nil, // Completely remove this
         ApplicationContextName: NewApplicationContextName(context, contextver),
     }
+	
     if len(userinfo) > 0 {
         d.UserInformation = &IE{
             Tag:   NewContextSpecificConstructorTag(30),
