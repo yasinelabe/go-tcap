@@ -194,19 +194,15 @@ func NewAbortSource(src uint8) *IE {
 // 	return d
 // }
 func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *DialoguePDU {
-	// removed protocol version
     d := &DialoguePDU{
         Type: NewApplicationWideConstructorTag(AARQ),
         ApplicationContextName: NewApplicationContextName(context, contextver),
     }
-	
+
     if len(userinfo) > 0 {
-        d.UserInformation = &IE{
-            Tag:   NewContextSpecificConstructorTag(30),
-            Value: userinfo[0].Value,
-        }
-        d.UserInformation.SetLength()
+        d.UserInformation = userinfo[0]
     }
+
     d.SetLength()
     return d
 }
