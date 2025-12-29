@@ -53,6 +53,17 @@ func NewContinueInvoke(otid, dtid uint32, invID, opCode int, payload []byte) *TC
 	return t
 }
 
+// NewContinueReturnResult creates a new TCAP of type Transaction=Continue, Component=ReturnResult.
+func NewContinueReturnResult(otid,dtid uint32, invID, opCode int, isLast bool, payload []byte) *TCAP {
+	t := &TCAP{
+		Transaction: NewContinue(otid,dtid, []byte{}),
+		Components:  NewComponents(NewReturnResult(invID, opCode, true, isLast, payload)),
+	}
+	t.SetLength()
+
+	return t
+}
+
 // NewEndReturnResult creates a new TCAP of type Transaction=End, Component=ReturnResult.
 func NewEndReturnResult(dtid uint32, invID, opCode int, isLast bool, payload []byte) *TCAP {
 	t := &TCAP{
