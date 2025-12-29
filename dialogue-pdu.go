@@ -211,6 +211,16 @@ func NewAARQ(protover int, context, contextver uint8, userinfo ...*IE) *Dialogue
     return d
 }
 
+// NewAARQRaw creates a new AARQ without UserInformation
+func NewAARQRaw(context, contextver uint8) *DialoguePDU {
+    d := &DialoguePDU{
+        Type: NewApplicationWideConstructorTag(AARQ),
+        ApplicationContextName: NewApplicationContextName(context, contextver),
+    }
+    d.SetLength()
+    return d
+}
+
 // NewAARE returns a new AARE(Dialogue Response).
 func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reason uint8, userinfo ...*IE) *DialoguePDU {
 	d := &DialoguePDU{
