@@ -229,13 +229,16 @@ func NewAARE(protover int, context, contextver, result uint8, diagsrc int, reaso
 		Result:                 NewResult(result),
 		ResultSourceDiagnostic: NewResultSourceDiagnostic(diagsrc, reason),
 	}
+	// if len(userinfo) > 0 {
+	// 	d.UserInformation = &IE{
+	// 		Tag:   NewContextSpecificConstructorTag(30),
+	// 		Value: userinfo[0].Value,
+	// 	}
+	// 	d.UserInformation.SetLength()
+	// }
 	if len(userinfo) > 0 {
-		d.UserInformation = &IE{
-			Tag:   NewContextSpecificConstructorTag(30),
-			Value: userinfo[0].Value,
-		}
-		d.UserInformation.SetLength()
-	}
+        d.UserInformation = userinfo[0]
+    }
 	d.SetLength()
 	return d
 }
