@@ -97,34 +97,34 @@ func NewComponents(comps ...*Component) *Components {
 	return c
 }
 
-// NewInvoke returns a new single Invoke Component.
-func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
-	c := &Component{
-		Type: NewContextSpecificConstructorTag(Invoke),
-		InvokeID: &IE{
-			Tag:    NewUniversalPrimitiveTag(2),
-			Length: 1,
-			Value:  []byte{uint8(invID)},
-		},
-		OperationCode: NewOperationCode(opCode, isLocal),
-	}
+// NewInvoke returns a new single Invoke Component with custom parameter tag support
+func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramTag ...Tag) *Component {
+    c := &Component{
+        Type: NewContextSpecificConstructorTag(Invoke),
+        InvokeID: &IE{
+            Tag:    NewUniversalPrimitiveTag(2),
+            Length: 1,
+            Value:  []byte{uint8(invID)},
+        },
+        OperationCode: NewOperationCode(opCode, isLocal),
+    }
 
-	if lkID > 0 {
-		c.LinkedID = &IE{
-			Tag:    NewContextSpecificPrimitiveTag(0),
-			Length: 1,
-			Value:  []byte{uint8(lkID)},
-		}
-	}
+    if lkID > 0 {
+        c.LinkedID = &IE{
+            Tag:    NewContextSpecificPrimitiveTag(0),
+            Length: 1,
+            Value:  []byte{uint8(lkID)},
+        }
+    }
 
-	if param != nil {
-		if err := c.setParameterFromBytes(param); err != nil {
-			logf("failed to build Parameter: %v", err)
-		}
-	}
+    if param != nil {
+        if err := c.setParameterFromBytes(param, paramTag...); err != nil {
+            logf("failed to build Parameter: %v", err)
+        }
+    }
 
-	c.SetLength()
-	return c
+    c.SetLength()
+    return c
 }
 
 // NewReturnResult returns a new single ReturnResultLast or ReturnResultNotLast Component.
@@ -466,29 +466,34 @@ func (c *Component) UnmarshalBinary(b []byte) error {
 // setParameterFromBytes sets the Parameter field from given bytes.
 //
 // It sets the value as it is if the given bytes cannot be parsed as (a set of) IE.
-func (c *Component) setParameterFromBytes(b []byte) error {
-	if b == nil {
-		return io.ErrUnexpectedEOF
-	}
-	ies, err := ParseMultiIEs(b)
-	if err != nil {
-		logf("failed to parse given bytes, building it anyway: %v", err)
-		c.Parameter = &IE{
-			// TODO: tag should not be determined here.
-			Tag:   NewUniversalConstructorTag(0x10),
-			Value: b,
-		}
+// Update setParameterFromBytes to accept optional tag
+func (c *Component) setParameterFromBytes(b []byte, paramTag ...Tag) error {
+    if b == nil {
+        return io.ErrUnexpectedEOF
+    }
+    
+    // Default to universal SEQUENCE tag (0x10 = 16)
+    tag := NewUniversalConstructorTag(0x10)
+    if len(paramTag) > 0 {
+        tag = paramTag[0]
+    }
+    
+    ies, err := ParseMultiIEs(b)
+    if err != nil {
+        logf("failed to parse given bytes, building it anyway: %v", err)
+        c.Parameter = &IE{
+            Tag:   tag,
+            Value: b,
+        }
+        return nil
+    }
 
-		return nil
-	}
-
-	c.Parameter = &IE{
-		// TODO: tag should not be determined here.
-		Tag:   NewUniversalConstructorTag(0x10),
-		Value: b,
-		IE:    ies,
-	}
-	return nil
+    c.Parameter = &IE{
+        Tag:   tag,
+        Value: b,
+        IE:    ies,
+    }
+    return nil
 }
 
 // SetValsFrom sets the values from IE parsed by ParseBER.
