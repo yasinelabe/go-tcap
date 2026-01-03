@@ -23,10 +23,10 @@ type TCAP struct {
 }
 
 // NewBeginInvoke creates a new TCAP of type Transaction=Begin, Component=Invoke.
-func NewBeginInvoke(otid uint32, invID, opCode int, payload []byte) *TCAP {
+func NewBeginInvoke(otid uint32, invID, opCode int, payload []byte,isUSSD byte) *TCAP {
 	t := &TCAP{
 		Transaction: NewBegin(otid, []byte{}),
-		Components:  NewComponents(NewInvoke(invID, -1, opCode, true, payload)),
+		Components:  NewComponents(NewInvoke(invID, -1, opCode, true, payload,isUSSD)),
 	}
 	t.SetLength()
 
@@ -34,8 +34,8 @@ func NewBeginInvoke(otid uint32, invID, opCode int, payload []byte) *TCAP {
 }
 
 // NewBeginInvokeWithDialogue creates a new TCAP of type Transaction=Begin, Component=Invoke with Dialogue Portion.
-func NewBeginInvokeWithDialogue(otid uint32, dlgType, ctx, ctxver uint8, invID, opCode int, payload []byte) *TCAP {
-	t := NewBeginInvoke(otid, invID, opCode, payload)
+func NewBeginInvokeWithDialogue(otid uint32, dlgType, ctx, ctxver uint8, invID, opCode int, payload []byte,isUSSD byte) *TCAP {
+	t := NewBeginInvoke(otid, invID, opCode, payload,isUSSD)
 	t.Dialogue = NewDialogue(dlgType, 1, NewAARQ(1, ctx, ctxver,nil), []byte{})
 	t.SetLength()
 
@@ -46,7 +46,7 @@ func NewBeginInvokeWithDialogue(otid uint32, dlgType, ctx, ctxver uint8, invID, 
 func NewContinueInvoke(otid, dtid uint32, invID, opCode int, payload []byte) *TCAP {
 	t := &TCAP{
 		Transaction: NewContinue(otid, dtid, []byte{}),
-		Components:  NewComponents(NewInvoke(invID, -1, opCode, true, payload)),
+		Components:  NewComponents(NewInvoke(invID, -1, opCode, true, payload,1)),
 	}
 	t.SetLength()
 
@@ -378,27 +378,4 @@ func (t *TCAP) String() string {
 		t.Dialogue,
 		t.Components,
 	)
-}
-
-func NewBeginMAPInvoke(otid uint32, dlgType, ctx, ctxver uint8, 
-    invID, opCode int, payload []byte) *TCAP {
-    
-    
-    t := &TCAP{
-        Transaction: NewBegin(otid, []byte{}),
-        Components:  NewComponents(NewAtiInvoke(invID, -1, opCode, true, payload)),
-    }
-    
-    if dlgType > 0 {
-        t.Dialogue = NewDialogue(dlgType, 1, NewAARQ(1, ctx, ctxver, nil), []byte{})
-    }
-    
-    t.SetLength()
-    return t
-}
-
-// NewBeginInvokeWithDialogueMAP is the updated version for MAP
-func NewBeginInvokeWithDialogueMAP(otid uint32, dlgType, ctx, ctxver uint8, 
-    invID, opCode int, payload []byte) *TCAP {
-    return NewBeginMAPInvoke(otid, dlgType, ctx, ctxver, invID, opCode, payload)
 }

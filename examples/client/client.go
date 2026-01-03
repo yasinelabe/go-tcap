@@ -43,7 +43,7 @@ func main() {
 		3,                                // ACN Version
 		0,                                // Invoke Id
 		*opcode,                          // OpCode
-		p,                                // Payload
+		p,1,                                // Payload
 	).MarshalBinary()
 	if err != nil {
 		log.Fatal(err)

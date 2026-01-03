@@ -34,7 +34,7 @@ var testcases = []struct {
 			3,                                // ACN Version
 			0,                                // Invoke Id
 			3,                                // OpCode
-			[]byte{0x04, 0x08, 0x00, 0x01, 0x01, 0x21, 0x43, 0x65, 0x87, 0xf9}, // Payload
+			[]byte{0x04, 0x08, 0x00, 0x01, 0x01, 0x21, 0x43, 0x65, 0x87, 0xf9},1, // Payload
 		),
 		serialized: []byte{
 			// Transaction Portion
@@ -103,7 +103,7 @@ var testcases = []struct {
 			3,                              // ACN Version
 			0,                              // Invoke Id
 			71,                             // OpCode
-			[]byte{0xde, 0xad, 0xbe, 0xef}, // Payload
+			[]byte{0xde, 0xad, 0xbe, 0xef},1, // Payload
 		),
 		serialized: []byte{
 			// Transaction Portion
@@ -356,7 +356,7 @@ var testcases = []struct {
 	// Component Portion
 	{
 		description: "Components/invoke",
-		structured:  tcap.NewComponents(tcap.NewInvoke(0, 0, 71, true, []byte{0xde, 0xad, 0xbe, 0xef})),
+		structured:  tcap.NewComponents(tcap.NewInvoke(0, 0, 71, true, []byte{0xde, 0xad, 0xbe, 0xef},1)),
 		serialized: []byte{
 			0x6c, 0x0e, 0xa1, 0x0c, 0x02, 0x01, 0x00, 0x02, 0x01, 0x47, 0x30, 0x04, 0xde, 0xad, 0xbe, 0xef,
 		},

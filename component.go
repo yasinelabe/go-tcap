@@ -98,39 +98,8 @@ func NewComponents(comps ...*Component) *Components {
 	return c
 }
 
-func NewAtiInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
-	c := &Component{
-		Type: NewContextSpecificConstructorTag(Invoke),
-		InvokeID: &IE{
-			Tag:    NewUniversalPrimitiveTag(2),
-			Length: 1,
-			Value:  []byte{uint8(invID)},
-		},
-		OperationCode: NewOperationCode(opCode, isLocal),
-	}
-
-	if lkID > 0 {
-		c.LinkedID = &IE{
-			Tag:    NewContextSpecificPrimitiveTag(0),
-			Length: 1,
-			Value:  []byte{uint8(lkID)},
-		}
-	}
-
-	if param != nil {
-		if err := c.setParameterFromBytes(param); err != nil {
-			logf("failed to build Parameter: %v", err)
-		}
-	}
-
-	c.SetLength()
-	return c
-}
-
-
-
 // NewInvoke returns a new single Invoke Component.
-func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
+func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, parameterEncoding byte) *Component {
 	c := &Component{
 		Type: NewContextSpecificConstructorTag(Invoke),
 		InvokeID: &IE{
@@ -138,10 +107,9 @@ func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
 			Length: 1,
 			Value:  []byte{uint8(invID)},
 		},
-		OperationCode: NewOperationCode(opCode, isLocal),
+		OperationCode:     NewOperationCode(opCode, isLocal),
+		ParameterEncoding: parameterEncoding,
 	}
-
-	c.ParameterEncoding = 1
 
 	if lkID > 0 {
 		c.LinkedID = &IE{
