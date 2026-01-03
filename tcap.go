@@ -381,18 +381,12 @@ func (t *TCAP) String() string {
 }
 
 func NewBeginMAPInvoke(otid uint32, dlgType, ctx, ctxver uint8, 
-    invID, opCode int, payload []byte, isUSSD bool) *TCAP {
+    invID, opCode int, payload []byte) *TCAP {
     
-    var encoding byte
-    if isUSSD {
-        encoding = 1 // USSD uses context-specific [0]
-    } else {
-        encoding = 0 // Other MAP operations use SEQUENCE
-    }
     
     t := &TCAP{
         Transaction: NewBegin(otid, []byte{}),
-        Components:  NewComponents(NewAtiInvoke(invID, -1, opCode, true, payload, encoding)),
+        Components:  NewComponents(NewAtiInvoke(invID, -1, opCode, true, payload)),
     }
     
     if dlgType > 0 {
@@ -405,6 +399,6 @@ func NewBeginMAPInvoke(otid uint32, dlgType, ctx, ctxver uint8,
 
 // NewBeginInvokeWithDialogueMAP is the updated version for MAP
 func NewBeginInvokeWithDialogueMAP(otid uint32, dlgType, ctx, ctxver uint8, 
-    invID, opCode int, payload []byte, isUSSD bool) *TCAP {
-    return NewBeginMAPInvoke(otid, dlgType, ctx, ctxver, invID, opCode, payload, isUSSD)
+    invID, opCode int, payload []byte) *TCAP {
+    return NewBeginMAPInvoke(otid, dlgType, ctx, ctxver, invID, opCode, payload)
 }
