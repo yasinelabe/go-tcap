@@ -374,7 +374,7 @@ func (c *Component) MarshalTo(b []byte) error {
 		// 	}
 		// }
 		if field := c.Parameter; field != nil {
-			if c.ParameterEncoding == 0 {
+			if c.ParameterEncoding != 0 {
 				// MAP: Write parameter value directly (no tag/length)
 				copy(b[offset:], field.Value)
 				offset += len(field.Value)
@@ -673,7 +673,7 @@ func (c *Component) MarshalLen() int {
 		// 	l += field.MarshalLen()
 		// }
 		if field := c.Parameter; field != nil {
-            if c.ParameterEncoding == 0 {
+            if c.ParameterEncoding != 0 {
                 l += len(field.Value) // MAP: Just the value length
             } else {
                 l += field.MarshalLen() // Normal: Include tag/length
