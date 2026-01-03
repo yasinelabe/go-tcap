@@ -22,6 +22,36 @@ type TCAP struct {
 	Components  *Components
 }
 
+// NewBeginMAPInvoke creates a new TCAP for MAP operations
+func NewBeginMAPInvoke(otid uint32, dlgType, ctx, ctxver uint8, 
+    invID, opCode int, payload []byte, isUSSD bool) *TCAP {
+    
+    var encoding byte
+    if isUSSD {
+        encoding = 1 // USSD uses context-specific [0]
+    } else {
+        encoding = 0 // Other MAP operations use SEQUENCE
+    }
+    
+    t := &TCAP{
+        Transaction: NewBegin(otid, []byte{}),
+        Components:  NewComponents(NewInvoke(invID, -1, opCode, true, payload, encoding)),
+    }
+    
+    if dlgType > 0 {
+        t.Dialogue = NewDialogue(dlgType, 1, NewAARQ(1, ctx, ctxver, nil), []byte{})
+    }
+    
+    t.SetLength()
+    return t
+}
+
+// NewBeginInvokeWithDialogueMAP is the updated version for MAP
+func NewBeginInvokeWithDialogueMAP(otid uint32, dlgType, ctx, ctxver uint8, 
+    invID, opCode int, payload []byte, isUSSD bool) *TCAP {
+    return NewBeginMAPInvoke(otid, dlgType, ctx, ctxver, invID, opCode, payload, isUSSD)
+}
+
 // NewBeginInvoke creates a new TCAP of type Transaction=Begin, Component=Invoke.
 func NewBeginInvoke(otid uint32, invID, opCode int, payload []byte) *TCAP {
 	t := &TCAP{

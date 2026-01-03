@@ -84,6 +84,7 @@ type Component struct {
 	ErrorCode     *IE
 	ProblemCode   *IE
 	Parameter     *IE
+	ParameterEncoding byte // 0 = default (SEQUENCE for MAP), 1 = context-specific [0]
 }
 
 // NewComponents creates a new Components.
@@ -98,7 +99,7 @@ func NewComponents(comps ...*Component) *Components {
 }
 
 // NewInvoke returns a new single Invoke Component with custom parameter tag support
-func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramTag ...Tag) *Component {
+func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramEncoding ...byte) *Component {
     c := &Component{
         Type: NewContextSpecificConstructorTag(Invoke),
         InvokeID: &IE{
@@ -118,7 +119,11 @@ func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramTag ...
     }
 
     if param != nil {
-        if err := c.setParameterFromBytes(param, paramTag...); err != nil {
+        encoding := byte(0) // Default: SEQUENCE for MAP
+        if len(paramEncoding) > 0 {
+            encoding = paramEncoding[0]
+        }
+        if err := c.setParameterFromBytes(param, encoding); err != nil {
             logf("failed to build Parameter: %v", err)
         }
     }
@@ -126,6 +131,7 @@ func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramTag ...
     c.SetLength()
     return c
 }
+
 
 // NewReturnResult returns a new single ReturnResultLast or ReturnResultNotLast Component.
 func NewReturnResult(invID, opCode int, isLocal, isLast bool, param []byte) *Component {
@@ -464,23 +470,29 @@ func (c *Component) UnmarshalBinary(b []byte) error {
 }
 
 // setParameterFromBytes sets the Parameter field from given bytes.
-//
-// It sets the value as it is if the given bytes cannot be parsed as (a set of) IE.
-// Update setParameterFromBytes to accept optional tag
-func (c *Component) setParameterFromBytes(b []byte, paramTag ...Tag) error {
+
+// Update setParameterFromBytes to accept encoding type
+func (c *Component) setParameterFromBytes(b []byte, paramEncoding ...byte) error {
     if b == nil {
         return io.ErrUnexpectedEOF
     }
     
-    // Default to universal SEQUENCE tag (0x10 = 16)
-    tag := NewUniversalConstructorTag(0x10)
-    if len(paramTag) > 0 {
-        tag = paramTag[0]
+    encoding := byte(0) // Default: SEQUENCE
+    if len(paramEncoding) > 0 {
+        encoding = paramEncoding[0]
     }
     
     ies, err := ParseMultiIEs(b)
     if err != nil {
         logf("failed to parse given bytes, building it anyway: %v", err)
+        
+        var tag Tag
+        if encoding == 1 {
+            tag = NewContextSpecificConstructorTag(0) // 0xA0 for USSD
+        } else {
+            tag = NewUniversalConstructorTag(0x10) // 0x30 for MAP (SEQUENCE)
+        }
+        
         c.Parameter = &IE{
             Tag:   tag,
             Value: b,
@@ -488,6 +500,13 @@ func (c *Component) setParameterFromBytes(b []byte, paramTag ...Tag) error {
         return nil
     }
 
+    var tag Tag
+    if encoding == 1 {
+        tag = NewContextSpecificConstructorTag(0)
+    } else {
+        tag = NewUniversalConstructorTag(0x10)
+    }
+    
     c.Parameter = &IE{
         Tag:   tag,
         Value: b,
