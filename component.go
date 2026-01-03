@@ -84,6 +84,7 @@ type Component struct {
 	ErrorCode     *IE
 	ProblemCode   *IE
 	Parameter     *IE
+	ParameterEncoding byte
 }
 
 // NewComponents creates a new Components.
@@ -95,6 +96,87 @@ func NewComponents(comps ...*Component) *Components {
 	c.SetLength()
 
 	return c
+}
+
+func NewAtiInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramEncoding ...byte) *Component {
+    c := &Component{
+        Type: NewContextSpecificConstructorTag(Invoke),
+        InvokeID: &IE{
+            Tag:    NewUniversalPrimitiveTag(2),
+            Length: 1,
+            Value:  []byte{uint8(invID)},
+        },
+        OperationCode: NewOperationCode(opCode, isLocal),
+    }
+
+	if len(paramEncoding) > 0 {
+        c.ParameterEncoding = paramEncoding[0]
+    }
+
+    if lkID > 0 {
+        c.LinkedID = &IE{
+            Tag:    NewContextSpecificPrimitiveTag(0),
+            Length: 1,
+            Value:  []byte{uint8(lkID)},
+        }
+    }
+
+    if param != nil {
+        encoding := byte(0) // Default: SEQUENCE for MAP
+        if len(paramEncoding) > 0 {
+            encoding = paramEncoding[0]
+        }
+        if err := c.setAtiParameterFromBytes(param, encoding); err != nil {
+            logf("failed to build Parameter: %v", err)
+        }
+    }
+
+    c.SetLength()
+    return c
+}
+
+// Update setParameterFromBytes to accept encoding type
+func (c *Component) setAtiParameterFromBytes(b []byte, paramEncoding ...byte) error {
+    if b == nil {
+        return io.ErrUnexpectedEOF
+    }
+    
+    encoding := byte(0) // Default: SEQUENCE
+    if len(paramEncoding) > 0 {
+        encoding = paramEncoding[0]
+    }
+    
+    ies, err := ParseMultiIEs(b)
+    if err != nil {
+        logf("failed to parse given bytes, building it anyway: %v", err)
+        
+        var tag Tag
+        if encoding == 1 {
+            tag = NewContextSpecificConstructorTag(0) // 0xA0 for USSD
+        } else {
+            tag = NewUniversalConstructorTag(0x10) // 0x30 for MAP (SEQUENCE)
+        }
+        
+        c.Parameter = &IE{
+            Tag:   tag,
+            Value: b,
+        }
+        return nil
+    }
+
+    var tag Tag
+    if encoding == 1 {
+        tag = NewContextSpecificConstructorTag(0)
+    } else {
+        tag = NewUniversalConstructorTag(0x10)
+    }
+    
+    c.Parameter = &IE{
+        Tag:   tag,
+        Value: b,
+        IE:    ies,
+    }
+    return nil
 }
 
 // NewInvoke returns a new single Invoke Component.
@@ -286,9 +368,21 @@ func (c *Component) MarshalTo(b []byte) error {
 			offset += field.MarshalLen()
 		}
 
+		// if field := c.Parameter; field != nil {
+		// 	if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
+		// 		return err
+		// 	}
+		// }
 		if field := c.Parameter; field != nil {
-			if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
-				return err
+			if c.ParameterEncoding == 0 {
+				// MAP: Write parameter value directly (no tag/length)
+				copy(b[offset:], field.Value)
+				offset += len(field.Value)
+			} else {
+				// Normal: Write with tag/length
+				if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
+					return err
+				}
 			}
 		}
 	case ReturnResultLast, ReturnResultNotLast:
@@ -575,9 +669,16 @@ func (c *Component) MarshalLen() int {
 		if field := c.OperationCode; field != nil {
 			l += field.MarshalLen()
 		}
+		// if field := c.Parameter; field != nil {
+		// 	l += field.MarshalLen()
+		// }
 		if field := c.Parameter; field != nil {
-			l += field.MarshalLen()
-		}
+            if c.ParameterEncoding == 0 {
+                l += len(field.Value) // MAP: Just the value length
+            } else {
+                l += field.MarshalLen() // Normal: Include tag/length
+            }
+        }
 	case ReturnResultLast, ReturnResultNotLast:
 		if field := c.ResultRetres; field != nil {
 			l += field.MarshalLen()
