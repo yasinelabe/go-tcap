@@ -110,6 +110,10 @@ func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte, paramEncodin
         OperationCode: NewOperationCode(opCode, isLocal),
     }
 
+	if len(paramEncoding) > 0 {
+        c.ParameterEncoding = paramEncoding[0]
+    }
+
     if lkID > 0 {
         c.LinkedID = &IE{
             Tag:    NewContextSpecificPrimitiveTag(0),
@@ -293,8 +297,18 @@ func (c *Component) MarshalTo(b []byte) error {
 		}
 
 		if field := c.Parameter; field != nil {
-			if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
-				return err
+			// if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
+			// 	return err
+			// }
+			if c.ParameterEncoding == 0 {
+				// MAP: Write parameter value directly (no tag/length)
+				copy(b[offset:], field.Value)
+				offset += len(field.Value)
+			} else {
+				// Normal: Write with tag/length
+				if err := field.MarshalTo(b[offset : offset+field.MarshalLen()]); err != nil {
+					return err
+				}
 			}
 		}
 	case ReturnResultLast, ReturnResultNotLast:
@@ -599,9 +613,16 @@ func (c *Component) MarshalLen() int {
 		if field := c.OperationCode; field != nil {
 			l += field.MarshalLen()
 		}
+		// if field := c.Parameter; field != nil {
+		// 	l += field.MarshalLen()
+		// }
 		if field := c.Parameter; field != nil {
-			l += field.MarshalLen()
-		}
+            if c.ParameterEncoding == 0 {
+                l += len(field.Value) // MAP: Just the value length
+            } else {
+                l += field.MarshalLen() // Normal: Include tag/length
+            }
+        }
 	case ReturnResultLast, ReturnResultNotLast:
 		if field := c.ResultRetres; field != nil {
 			l += field.MarshalLen()
