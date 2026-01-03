@@ -118,7 +118,7 @@ func NewAtiInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Componen
 	}
 
 	if param != nil {
-		if err := c.setAtiParameterFromBytes(param); err != nil {
+		if err := c.setParameterFromBytes(param); err != nil {
 			logf("failed to build Parameter: %v", err)
 		}
 	}
@@ -127,36 +127,7 @@ func NewAtiInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Componen
 	return c
 }
 
-// Update setParameterFromBytes to accept encoding type
-func (c *Component) setAtiParameterFromBytes(b []byte) error {
-	if b == nil {
-		return io.ErrUnexpectedEOF
-	}
 
-	ies, err := ParseMultiIEs(b)
-	if err != nil {
-		logf("failed to parse given bytes, building it anyway: %v", err)
-
-		var tag Tag
-		tag = NewUniversalConstructorTag(0x10)
-
-		c.Parameter = &IE{
-			Tag:   tag,
-			Value: b,
-		}
-		return nil
-	}
-
-	var tag Tag
-	tag = NewUniversalConstructorTag(0x10)
-
-	c.Parameter = &IE{
-		Tag:   tag,
-		Value: b,
-		IE:    ies,
-	}
-	return nil
-}
 
 // NewInvoke returns a new single Invoke Component.
 func NewInvoke(invID, lkID, opCode int, isLocal bool, param []byte) *Component {
