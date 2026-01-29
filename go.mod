@@ -9,6 +9,6 @@ require (
 	github.com/yasinelabe/go-m3ua v0.1.11
 )
 
-require github.com/wmnsk/go-m3ua v0.1.9 // indirect
+require github.com/wmnsk/go-m3ua v0.1.11 // indirect
 
 replace github.com/yasinelabe/go-m3ua => github.com/yasinelabe/go-m3ua v0.0.0-20251231045140-7dc7736fbd61
